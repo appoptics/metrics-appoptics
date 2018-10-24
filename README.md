@@ -1,11 +1,13 @@
-## Librato Metrics Plugin for the Metrics Library
+## Appoptics Plugin for the Metrics Library
 
-The `LibratoReporter` class runs in the background, publishing metrics from <a href="http://metrics.dropwizard.io/">dropwizard/metrics</a> to the <a href="http://metrics.librato.com">Librato Metrics API</a> at the specified interval.
+The `AppopticsReporter` class runs in the background, publishing metrics from
+[dropwizard/metrics](http://metrics.dropwizard.io/) to the
+ [AppOptics API](https://www.appoptics.com) at the specified interval.
 
 	<dependency>
-	  <groupId>com.librato.metrics</groupId>
-	  <artifactId>metrics-librato</artifactId>
-	  <version>5.0.5</version>
+	  <groupId>com.appoptics.metrics</groupId>
+	  <artifactId>metrics-appoptics</artifactId>
+	  <version>1.0.0</version>
 	</dependency>
 
 ## Usage
@@ -13,52 +15,50 @@ The `LibratoReporter` class runs in the background, publishing metrics from <a h
 Start the reporter in your application bootstrap:
 
     MetricRegistry registry = environment.metrics(); // if you're not using dropwizard, use your own registry
-    Librato.reporter(registry, "<Librato Email>", "<Librato API Token>")
-        .setSource("<Source Identifier (usually hostname)>")
-        .start(10, TimeUnit.SECONDS);
-
-## Tagging
-
-You can enable the reporter to submit tagged measures.  Our tagging
-product is currently in beta. If you'd like to take advantage of this,
-please email support@librato.com to join the beta.
-
-    Librato.reporter(registry, "<email>", "<token>")
-        .setEnableTagging(true)  
+    Appoptics.reporter(registry, "<AppOptics API Token>")
         .addTag("tier", "web")
         .addTag("environment", "staging")
         .start(10, TimeUnit.SECONDS);
 
-The tags you add in this way will be included on every measure. If you wish to supply custom tags at runtime you can use the Librato helper:
+The tags you add in this way will be included on every measure. If you wish to
+supply custom tags at runtime you can use the Appoptics helper:
 
-    Librato.metric("logins").tag("userId", userId).meter().mark()
+    Appoptics.metric("logins").tag("userId", userId).meter().mark()
 
 
 ## Fluent Helper
 
-The Librato fluent helper provides a number of ways to make it easy to interface with Dropwizard Metrics.  You do not need to use this class but if you want to specify custom sources and/or tags, it will be easier. Some examples:
+The Appoptics fluent helper provides a number of ways to make it easy to
+interface with Dropwizard Metrics.  You do not need to use this class but if 
+you want to specify custom tags, it will be easier. Some examples:
 
-    Librato.metric(registry, "logins").tag("uid", uid).meter().mark()
-    Librato.metric(registry, "kafka-read-latencies").tag("broker", broker).histogram().update(latency)
-    Librato.metric(registry, "temperature").source("celcius").tag("type", "celcius").gauge(() -> 42))
-    Librato.metric(registry, "jobs-processed").source("ebs").meter().mark()
-    Librato.metric(registry, "just-these-tags").tag('"foo", "bar").doNotInheritTags().timer.update(time)
+    Appoptics.metric(registry, "logins").tag("uid", uid).meter().mark()
+    Appoptics.metric(registry, "kafka-read-latencies").tag("broker", broker).histogram().update(latency)
+    Appoptics.metric(registry, "temperature").tag("type", "celcius").gauge(() -> 42))
+    Appoptics.metric(registry, "jobs-processed").tag("service", "ebs").meter().mark()
+    Appoptics.metric(registry, "just-these-tags").tag('"foo", "bar").doNotInheritTags().timer.update(time)
 
-When you start the Librato reporter as described earlier, that will set the registry used to start it as the default registry in the fluent helper.  That lets you simply use the shorter form:
+When you start the Appoptics reporter as described earlier, that will set the 
+registry used to start it as the default registry in the fluent helper.  That 
+lets you simply use the shorter form:
 
-    Librato.metric("logins").tag("uid", uid).meter().mark()
+    Appoptics.metric("logins").tag("uid", uid).meter().mark()
 
-## Librato Metrics Used
+## AppOptics Metrics Used
 
-This library will output a few different kinds of Librato Metrics to Librato:
+This library will output a few different kinds of metrics to AppOptics:
 
 * Gauges: a measurement at a point in time
-* DeltaGauge: a gauge that submits the delta between the current value of the gauge and the previous value. Note that the reporter will omit the first value for a DeltaGauge because it knows no previous value at that time.
-* ComplexGauge: includes sum, count, min, max, and average measurements.See <a href="http://dev.librato.com/v1/post/metrics">the API documentation</a> for more information on extended gauge parameters.
+* DeltaGauge: a gauge that submits the delta between the current value of the 
+  gauge and the previous value. Note that the reporter will omit the first value
+  for a DeltaGauge because it knows no previous value at that time.
+* ComplexGauge: includes sum, count, min, max, and average measurements. See 
+  [the API documentation](https://docs.appoptics.com/api/#create-a-measurement)
+  for more information on extended gauge parameters.
 
-## Translation to Librato Metrics
+## Translation to AppOptics Metrics
 
-This section describes how each of the Coda metrics translate into Librato metrics.
+This section describes how each of the Coda metrics translate into AppOptics metrics.
 
 ### Coda Gauges
 
@@ -76,8 +76,6 @@ Given a Coda Counter with name `foo`, the following values are reported:
 
 The value reported for the Gauge is the current value of the Coda Counter at flush time.
 
-_Note: Librato Counters represent monotonically increasing values. Since Coda Counters can be incremented or decremented, it makes sense to report them as Librato Gauges._
-
 ### Coda Histograms
 
 Given a Coda Histogram with name `foo`, the following values are reported:
@@ -91,7 +89,9 @@ Given a Coda Histogram with name `foo`, the following values are reported:
 * Gauge: name=foo.999th
 * DeltaGauge: name=foo.count (represents the number of values the Coda Histogram has recorded)
 
-_Note that Coda Histogram percentiles are determined using configurable <a href="https://dropwizard.github.io/metrics/3.1.0/manual/core/#histograms">Reservoir Sampling</a>. Histograms by default use a non-biased uniform reservoir._
+_Note that Coda Histogram percentiles are determined using configurable 
+[Reservoir Sampling](https://dropwizard.github.io/metrics/3.1.0/manual/core/#histograms). 
+Histograms by default use a non-biased uniform reservoir._
 
 ### Coda Meters
 
@@ -105,7 +105,8 @@ Given a Coda Meter with name `foo`, the following values are reported:
 
 ### Coda Timers
 
-Coda Timers compose a Coda Meter as well as a Coda Histogram, so the values reported to Librato are the union of the values reported for these two metric types.
+Coda Timers compose a Coda Meter as well as a Coda Histogram, so the values 
+reported to AppOptics are the union of the values reported for these two metric types.
 
 Given a Coda Timer with name `foo`, the following values are reported:
 
@@ -122,57 +123,48 @@ Given a Coda Timer with name `foo`, the following values are reported:
 * Gauge: name=foo.5MinuteRate
 * Gauge: name=foo.15MinuteRate
 
-_Note that Coda Timer percentiles are determined using configurable <a href="https://dropwizard.github.io/metrics/3.1.0/manual/core/#histograms">Reservoir Sampling</a>. Coda Timers by default use an exponentially decaying reservoir to prioritize newer data._
+_Note that Coda Timer percentiles are determined using configurable 
+[Reservoir Sampling](https://dropwizard.github.io/metrics/3.1.0/manual/core/#histograms). 
+Coda Timers by default use an exponentially decaying reservoir to prioritize newer data._
 
 ## Reducing The Volume Of Metrics Reported
 
 ### Eliding Certain Metrics
 
-While this library aims to accurately report all of the data that Coda Metrics provides, it can become somewhat verbose. One can reduce the number of metrics reported for Coda Timers, Coda Meters, and Coda Histograms when configuring the reporter. The percentiles, rates, and count for these metrics can be whitelisted (they are all on by default). In order to do this, supply a `LibratoReporter.MetricExpansionConfig` to the builder:
+While this library aims to accurately report all of the data that Coda Metrics 
+provides, it can become somewhat verbose. One can reduce the number of metrics 
+reported for Coda Timers, Coda Meters, and Coda Histograms when configuring the 
+reporter. The percentiles, rates, and count for these metrics can be whitelisted 
+(they are all on by default). In order to do this, supply a 
+`AppopticsReporter.MetricExpansionConfig` to the builder:
 
-    Librato.reporter(registry, <email>, <token>)
+    Appoptics.reporter(registry, <token>)
         .setExpansionConfig(
             new MetricExpansionConfig(
                 EnumSet.of(
-                    LibratoReporter.ExpandedMetric.PCT_95,
-                    LibratoReporter.ExpandedMetric.RATE_1_MINUTE)))
+                    AppopticsReporter.ExpandedMetric.PCT_95,
+                    AppopticsReporter.ExpandedMetric.RATE_1_MINUTE)))
 
 In this configuration, the reporter will only report the 95th percentile and 1 minute rate for these metrics. Note that the `ComplexGauge`s will still be reported.
 
 ### Eliding Complex Gauges
 
-Timers and Histograms end up generating a complex gauge along with any other expanded metrics that are configured to be sent to Librato. If you wish to exclude these complex gauges, one may enable `omitComplexGauges` in the LibratoReporter.
+Timers and Histograms end up generating a complex gauge along with any other expanded metrics that are configured to be sent to Appoptics. If you wish to exclude these complex gauges, one may enable `omitComplexGauges` in the AppopticsReporter.
 
-    Librato.reporter(registry, <email>, <token>)
+    Appoptics.reporter(registry, <token>)
       .setOmitComplexGauges(true)
 
 Note that in addition to the mean, complex gauges also include the minimum and maximum dimensions, so if you choose to enable this option, you will no longer have access to those summaries for those metrics.
 
 ### Idle Stat Detection
 
-A new feature in `4.0.1.4` detects when certain types of metrics (Meters, Histograms, and Timers) stop getting updated by the application. When this happens, `metrics-librato` will stop reporting these streams to Librato until they are updated again. Since Librato does not charge for metrics which are not submitted to the API, this can lower your cost, especially for metrics that report infrequently.
+The _idle stats_ feature detects when certain types of metrics (Meters, Histograms, and Timers) stop getting updated by the application. When this happens, `metrics-appoptics` will stop reporting these streams to AppOptics until they are updated again. Since AppOptics does not charge for metrics which are not submitted to the API, this can lower your cost, especially for metrics that report infrequently.
 
-This is enabled by default, but should you wish to disable this feature, you can do so when setting up the LibratoReporter:
+This is enabled by default, but should you wish to disable this feature, you can do so when setting up the AppopticsReporter:
 
-    Librato.reporter(registry, <email>, <token>)
+    Appoptics.reporter(registry, <token>)
     	.setDeleteIdleStats(false)
-
-## Custom Sources
-
-Sources are globally set for the LibratoReporter as described above. Sometimes though it is desirable to use custom
-sources for certain signals. To do this, supply a sourceRegex to the Librato.reporter(...) builder.
-
-The regular expression must contain one matching group. As `metrics-librato` takes metrics from the registry and
-batches them, it will apply this regular expression (if supplied) to each metric name.  If the regular expression
-matches, it will use the first matching group as the source for that metric, and everything after the entire
-expression match will be used as the actual metric name.
-
-    Librato.reporter(registry, <email>, <token>)
-        .setSourceRegex(Pattern.compile("^(.*?)--"))
-
-The above regular expression will take a meter name like "uid:42--api.latency" and report that with a source of
-`uid:42` and a metric name of `api.latency`.
 
 ## Using Dropwizard?
 
-The [dropwizard-librato](https://github.com/librato/dropwizard-librato) project allows you to send Metrics from within your Dropwizard application to Librato Metrics by adding a section to your config file.
+The [dropwizard-appoptics](https://github.com/appoptics/dropwizard-appoptics) project allows you to send Metrics from within your Dropwizard application to AppOptics by adding a section to your config file.

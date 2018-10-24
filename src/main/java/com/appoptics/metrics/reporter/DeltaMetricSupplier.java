@@ -1,4 +1,4 @@
-package com.librato.metrics.reporter;
+package com.appoptics.metrics.reporter;
 
 import com.codahale.metrics.Metric;
 import com.codahale.metrics.MetricRegistry;

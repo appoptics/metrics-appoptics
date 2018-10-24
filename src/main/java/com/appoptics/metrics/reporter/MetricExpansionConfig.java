@@ -1,4 +1,4 @@
-package com.librato.metrics.reporter;
+package com.appoptics.metrics.reporter;
 
 import java.util.EnumSet;
 import java.util.Set;

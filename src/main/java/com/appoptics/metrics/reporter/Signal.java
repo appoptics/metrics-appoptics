@@ -1,15 +1,15 @@
-package com.librato.metrics.reporter;
+package com.appoptics.metrics.reporter;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.librato.metrics.client.Tag;
+import com.appoptics.metrics.client.Tag;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 public class Signal {
     public String name;
-    public String source;
     public List<Tag> tags = Collections.emptyList();
     public boolean overrideTags;
 
@@ -26,16 +26,13 @@ public class Signal {
 
     public Signal(String name, String source) {
         this.name = name;
-        this.source = source;
     }
 
     @JsonCreator
     public Signal(@JsonProperty("name") String name,
-                  @JsonProperty("source") String source,
                   @JsonProperty("tags") List<Tag> tags,
                   @JsonProperty("overrideTags") boolean overrideTags) {
         this.name = name;
-        this.source = source;
         if (tags != null) {
             this.tags = tags;
         }
@@ -45,32 +42,22 @@ public class Signal {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
+        if (!(o instanceof Signal)) return false;
         Signal signal = (Signal) o;
-
-        if (overrideTags != signal.overrideTags) return false;
-        if (name != null ? !name.equals(signal.name) : signal.name != null)
-            return false;
-        if (source != null ? !source.equals(signal.source) : signal.source != null)
-            return false;
-        return tags != null ? tags.equals(signal.tags) : signal.tags == null;
+        return overrideTags == signal.overrideTags &&
+                Objects.equals(name, signal.name) &&
+                Objects.equals(tags, signal.tags);
     }
 
     @Override
     public int hashCode() {
-        int result = name != null ? name.hashCode() : 0;
-        result = 31 * result + (source != null ? source.hashCode() : 0);
-        result = 31 * result + (tags != null ? tags.hashCode() : 0);
-        result = 31 * result + (overrideTags ? 1 : 0);
-        return result;
+        return Objects.hash(name, tags, overrideTags);
     }
 
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("Signal{");
         sb.append("name='").append(name).append('\'');
-        sb.append(", source='").append(source).append('\'');
         sb.append(", tags=").append(tags);
         sb.append(", overrideTags=").append(overrideTags);
         sb.append('}');

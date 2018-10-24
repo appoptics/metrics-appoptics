@@ -1,7 +1,7 @@
-package com.librato.metrics.reporter;
+package com.appoptics.metrics.reporter;
 
 import com.codahale.metrics.Metric;
-import com.librato.metrics.client.Versions;
+import com.appoptics.metrics.client.Versions;
 
 public class Agent {
     /**
@@ -14,10 +14,10 @@ public class Agent {
                 "META-INF/maven/io.dropwizard.metrics/metrics-core/pom.properties",
                 Metric.class);
         String metricsLibratoVersion = Versions.getVersion(
-                "META-INF/maven/com.librato.metrics/metrics-librato/pom.properties",
-                LibratoReporter.class);
+                "META-INF/maven/com.appoptics.metrics/metrics-appoptics/pom.properties",
+                AppopticsReporter.class);
         AGENT_IDENTIFIER = String.format(
-                "metrics-librato/%s metrics/%s",
+                "metrics-appoptics/%s metrics/%s",
                 metricsLibratoVersion,
                 metricsCoreVersion);
     }

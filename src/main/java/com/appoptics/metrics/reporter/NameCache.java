@@ -1,4 +1,4 @@
-package com.librato.metrics.reporter;
+package com.appoptics.metrics.reporter;
 
 public class NameCache {
     private final LRU<Signal, String> cache;
