@@ -3,12 +3,14 @@ package com.librato.metrics.reporter;
 import com.appoptics.metrics.reporter.*;
 import com.codahale.metrics.*;
 import com.appoptics.metrics.client.Duration;
-import com.appoptics.metrics.client.Tag;
+import com.librato.metrics.client.Tag;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * This provides a (largely) backwards compatible metrics interface to reduce
@@ -17,12 +19,18 @@ import java.util.concurrent.TimeUnit;
  */
 @Deprecated
 public class Librato {
+    public static AtomicReference<Supplier<Reservoir>> defaultReservoir = new AtomicReference<Supplier<Reservoir>>(new Supplier<Reservoir>() {
+        @Override
+        public Reservoir get() {
+            return new ExponentiallyDecayingReservoir();
+        }
+    });
     private static final NameCache nameCache = new NameCache(5000);
     private final MetricRegistry registry;
     private final String name;
     private List<Tag> tags = Collections.emptyList();
     private boolean overrideTags;
-    private Supplier<Reservoir> reservoir = Appoptics.defaultReservoir.get();
+    private Supplier<Reservoir> reservoir = defaultReservoir.get();
 
     public static Librato metric(String name) {
         MetricRegistry registry = Appoptics.defaultRegistry.get();
@@ -222,12 +230,19 @@ public class Librato {
         if (tags.isEmpty()) {
             return null;
         }
-        return new Signal(name, tags, overrideTags);
+
+        // Convert tag type
+        List<com.appoptics.metrics.client.Tag> aoTags = new ArrayList<>(tags.size());
+        for (Tag tag : tags) {
+            aoTags.add(new com.appoptics.metrics.client.Tag(tag.name, tag.value));
+        }
+
+        return new Signal(name, aoTags, overrideTags);
     }
 
 
     private String encodeName(final Signal signal) {
-        return nameCache.get(signal, new Supplier<String>() {
+        return nameCache.get(signal, new com.appoptics.metrics.reporter.Supplier<String>() {
             @Override
             public String get() {
                 return Json.serialize(signal);
