@@ -1,11 +1,9 @@
-package com.librato.metrics.reporter;
+package com.appoptics.metrics.reporter;
 
-import com.appoptics.metrics.reporter.*;
 import com.codahale.metrics.*;
 import com.appoptics.metrics.client.Duration;
-import com.librato.metrics.client.Tag;
+import com.appoptics.metrics.client.Tag;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -13,18 +11,17 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
- * This provides a (largely) backwards compatible metrics interface to reduce
- * the work required to upgrade. This is deprecated and will be removed in a
- * future version, so should not be used in new code.
+ * Utility class for encoding sources and/or tags into metric names.
  */
-@Deprecated
-public class Librato {
+public class Appoptics {
     public static AtomicReference<Supplier<Reservoir>> defaultReservoir = new AtomicReference<Supplier<Reservoir>>(new Supplier<Reservoir>() {
         @Override
         public Reservoir get() {
             return new ExponentiallyDecayingReservoir();
         }
     });
+    public static final AtomicReference<MetricRegistry> defaultRegistry = new AtomicReference<MetricRegistry>(new MetricRegistry());
+    public static final AtomicReference<Duration> defaultWindow = new AtomicReference<Duration>(new Duration(1, TimeUnit.MINUTES));
     private static final NameCache nameCache = new NameCache(5000);
     private final MetricRegistry registry;
     private final String name;
@@ -32,37 +29,41 @@ public class Librato {
     private boolean overrideTags;
     private Supplier<Reservoir> reservoir = defaultReservoir.get();
 
-    public static Librato metric(String name) {
-        MetricRegistry registry = Appoptics.defaultRegistry.get();
+    public static ReporterBuilder reporter(MetricRegistry registry, String token) {
+        return new ReporterBuilder(registry, token);
+    }
+
+    public static Appoptics metric(String name) {
+        MetricRegistry registry = defaultRegistry.get();
         return metric(registry, name);
     }
 
-    public static Librato metric(MetricRegistry registry, String name) {
-        return new Librato(registry, name);
+    public static Appoptics metric(MetricRegistry registry, String name) {
+        return new Appoptics(registry, name);
     }
 
-    public Librato(MetricRegistry registry, String name) {
+    public Appoptics(MetricRegistry registry, String name) {
         this.registry = registry;
         this.name = name;
     }
 
-    public Librato reservoir(Supplier<Reservoir> reservoir) {
+    public Appoptics reservoir(Supplier<Reservoir> reservoir) {
         this.reservoir = reservoir;
         return this;
     }
 
-    public Librato window() {
+    public Appoptics window() {
         this.reservoir = new Supplier<Reservoir>() {
             @Override
             public Reservoir get() {
-                Duration window = Appoptics.defaultWindow.get();
+                Duration window = defaultWindow.get();
                 return new SlidingTimeWindowArrayReservoir(window.duration, window.timeUnit);
             }
         };
         return this;
     }
 
-    public Librato window(final long window, final TimeUnit unit) {
+    public Appoptics window(final long window, final TimeUnit unit) {
         this.reservoir = new Supplier<Reservoir>() {
             @Override
             public Reservoir get() {
@@ -72,31 +73,26 @@ public class Librato {
         return this;
     }
 
-    public Librato source(Object source) {
-        addTag(new Tag("source", source.toString()));
-        return this;
-    }
-
-    public Librato tag(String name, Object value) {
+    public Appoptics tag(String name, Object value) {
         addTag(new Tag(name, value.toString()));
         return this;
     }
 
-    public Librato tags(Tag... tags) {
+    public Appoptics tags(Tag... tags) {
         for (Tag tag : tags) {
             addTag(tag);
         }
         return this;
     }
 
-    public Librato tags(List<Tag> tags) {
+    public Appoptics tags(List<Tag> tags) {
         for (Tag tag : tags) {
             addTag(tag);
         }
         return this;
     }
 
-    public Librato doNotInheritTags() {
+    public Appoptics doNotInheritTags() {
         this.overrideTags = true;
         return this;
     }
@@ -230,19 +226,12 @@ public class Librato {
         if (tags.isEmpty()) {
             return null;
         }
-
-        // Convert tag type
-        List<com.appoptics.metrics.client.Tag> aoTags = new ArrayList<>(tags.size());
-        for (Tag tag : tags) {
-            aoTags.add(new com.appoptics.metrics.client.Tag(tag.name, tag.value));
-        }
-
-        return new Signal(name, aoTags, overrideTags);
+        return new Signal(name, tags, overrideTags);
     }
 
 
     private String encodeName(final Signal signal) {
-        return nameCache.get(signal, new com.appoptics.metrics.reporter.Supplier<String>() {
+        return nameCache.get(signal, new Supplier<String>() {
             @Override
             public String get() {
                 return Json.serialize(signal);

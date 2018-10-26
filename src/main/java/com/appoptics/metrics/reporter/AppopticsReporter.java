@@ -1,77 +1,66 @@
-package com.librato.metrics.reporter;
+package com.appoptics.metrics.reporter;
 
 import com.codahale.metrics.*;
-import com.librato.metrics.client.*;
+import com.appoptics.metrics.client.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.SocketTimeoutException;
 import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.SortedMap;
 import java.util.concurrent.TimeUnit;
-import java.util.regex.Pattern;
 
-import static com.librato.metrics.reporter.ExpandedMetric.*;
+import static com.appoptics.metrics.reporter.ExpandedMetric.*;
 
 /**
  * The main class in this library
  */
-public class LibratoReporter extends ScheduledReporter implements RateConverter, DurationConverter {
-    private static final Logger log = LoggerFactory.getLogger(LibratoReporter.class);
+public class AppopticsReporter extends ScheduledReporter implements RateConverter, DurationConverter {
+    private static final Logger log = LoggerFactory.getLogger(AppopticsReporter.class);
     private static MetricRegistry registry;
-    private final LibratoClient client;
+    private final AppopticsClient client;
     private final DeltaTracker deltaTracker;
-    private final Pattern sourceRegex;
     private final String prefix;
     private final String prefixDelimiter;
     private final MetricExpansionConfig expansionConfig;
     private final boolean deleteIdleStats;
     private final boolean omitComplexGauges;
-    private final String source;
     private final List<Tag> tags;
-    private final boolean enableLegacy;
-    private final boolean enableTagging;
     private final RateConverter rateConverter;
     private final DurationConverter durationConverter;
     private volatile Integer defaultPeriod;
 
     public static ReporterBuilder builder(MetricRegistry registry,
-                                          String email,
                                           String token) {
-        return new ReporterBuilder(registry, email, token);
+        return new ReporterBuilder(registry, token);
     }
 
     /*
      * Constructor. Should be called from the builder.
      */
-    LibratoReporter(ReporterAttributes atts) {
+    AppopticsReporter(ReporterAttributes atts) {
         super(atts.registry,
                 atts.reporterName,
                 atts.metricFilter,
                 atts.rateUnit,
                 atts.durationUnit);
-        Librato.defaultRegistry.set(atts.registry);
-        this.client = atts.libratoClientFactory.build(atts);
+        Appoptics.defaultRegistry.set(atts.registry);
+        this.client = atts.appopticsClientFactory.build(atts);
         this.deltaTracker = new DeltaTracker(new DeltaMetricSupplier(atts.registry));
-        this.sourceRegex = atts.sourceRegex;
         this.prefix = checkPrefix(atts.prefix);
         this.prefixDelimiter = atts.prefixDelimiter;
         this.expansionConfig = atts.expansionConfig;
         this.deleteIdleStats = atts.deleteIdleStats;
         this.omitComplexGauges = atts.omitComplexGauges;
-        this.source = atts.source;
         this.tags = atts.tags;
-        this.enableLegacy = atts.enableLegacy;
-        this.enableTagging = atts.enableTagging;
         this.rateConverter = atts.rateConverter != null ? atts.rateConverter : this;
         this.durationConverter = atts.durationConverter != null ? atts.durationConverter : this;
     }
 
     @Override
     public void start(long period, TimeUnit unit) {
-        Librato.defaultWindow.set(new Duration(period, unit));
+        Appoptics.defaultWindow.set(new Duration(period, unit));
         defaultPeriod = (int) (unit.toSeconds(period));
         super.start(period, unit);
     }
@@ -82,7 +71,7 @@ public class LibratoReporter extends ScheduledReporter implements RateConverter,
                        SortedMap<String, Meter> meters,
                        SortedMap<String, Timer> timers) {
         long epoch = System.currentTimeMillis() / 1000;
-        Measures measures = new Measures(source, Collections.<Tag>emptyList(), epoch, defaultPeriod);
+        Measures measures = new Measures(Collections.<Tag>emptyList(), epoch, defaultPeriod);
         addGauges(measures, gauges);
         addCounters(measures, counters);
         addHistograms(measures, histograms);
@@ -131,7 +120,7 @@ public class LibratoReporter extends ScheduledReporter implements RateConverter,
             Gauge gauge = gauges.get(metricName);
             Number number = Numbers.getNumberFrom(gauge.getValue());
             if (number != null) {
-                addLibratoGauge(measures, convertToSignal(metricName), number.doubleValue());
+                addAppopticsGauge(measures, convertToSignal(metricName), number.doubleValue());
             }
         }
     }
@@ -140,7 +129,7 @@ public class LibratoReporter extends ScheduledReporter implements RateConverter,
         for (String metricName : counters.keySet()) {
             Counter counter = counters.get(metricName);
             long count = counter.getCount();
-            addLibratoGauge(measures, convertToSignal(metricName), count);
+            addAppopticsGauge(measures, convertToSignal(metricName), count);
         }
     }
 
@@ -201,7 +190,7 @@ public class LibratoReporter extends ScheduledReporter implements RateConverter,
             final long count = (long) snapshot.size();
             if (count > 0) {
                 try {
-                    addLibratoGauge(measures, convertToSignal(name),
+                    addAppopticsGauge(measures, convertToSignal(name),
                             doConvertDuration(sum, convert),
                             count,
                             doConvertDuration(snapshot.getMin(), convert),
@@ -213,40 +202,26 @@ public class LibratoReporter extends ScheduledReporter implements RateConverter,
         }
     }
 
-    private void addLibratoGauge(Measures measures, Signal signal, double sum, long count, double min, double max) {
-        GaugeMeasure gauge = new GaugeMeasure(signal.name, sum, count, min, max);
-        addLibratoGauge(measures, signal, gauge);
+    private void addAppopticsGauge(Measures measures, Signal signal, double sum, long count, double min, double max) {
+        Measure gauge = new Measure(signal.name, sum, count, min, max);
+        addAppopticsGauge(measures, signal, gauge);
     }
 
-    private void addLibratoGauge(Measures measures, Signal signal, double value) {
-        GaugeMeasure gauge = new GaugeMeasure(signal.name, value);
-        addLibratoGauge(measures, signal, gauge);
+    private void addAppopticsGauge(Measures measures, Signal signal, double value) {
+        Measure gauge = new Measure(signal.name, value);
+        addAppopticsGauge(measures, signal, gauge);
     }
 
-    private void addLibratoGauge(Measures measures, Signal signal, GaugeMeasure gauge) {
-        if (this.enableLegacy) {
-            gauge.setSource(signal.source);
-            measures.add(gauge);
+    private void addAppopticsGauge(Measures measures, Signal signal, Measure gauge) {
+        for (Tag tag : signal.tags) {
+            gauge.addTag(tag);
         }
-        if (this.enableTagging) {
-            TaggedMeasure taggedMeasure = new TaggedMeasure(gauge);
-            for (Tag tag : signal.tags) {
-                taggedMeasure.addTag(tag);
+        if (!signal.overrideTags) {
+            for (Tag tag : tags) {
+                gauge.addTag(tag);
             }
-            boolean addedSourceTag = false;
-            if (!signal.overrideTags && signal.tags.isEmpty() && signal.source != null) {
-                taggedMeasure.addTag(new Tag("source", signal.source));
-                addedSourceTag = true;
-            }
-            if (!signal.overrideTags) {
-                for (Tag tag : tags) {
-                    if (!addedSourceTag || !"source".equals(tag.name)) {
-                        taggedMeasure.addTag(tag);
-                    }
-                }
-            }
-            measures.add(taggedMeasure);
         }
+        measures.add(gauge);
     }
 
     private String addPrefix(String metricName) {
@@ -269,7 +244,7 @@ public class LibratoReporter extends ScheduledReporter implements RateConverter,
                 return;
             }
             Signal signal = convertToSignal(name, expandedMetric);
-            addLibratoGauge(measures, signal, reading.doubleValue());
+            addAppopticsGauge(measures, signal, reading.doubleValue());
         }
     }
 
@@ -278,17 +253,6 @@ public class LibratoReporter extends ScheduledReporter implements RateConverter,
     }
 
     private Signal convertToSignal(final String registryName, ExpandedMetric expandedMetric) {
-        SourceInformation sourceInfo = SourceInformation.from(sourceRegex, registryName);
-        if (sourceInfo.source != null) {
-            // this is a legacy source added metric
-            String metricName = sourceInfo.name;
-            if (expandedMetric != null) {
-                metricName = expandedMetric.buildMetricName(metricName);
-            }
-            metricName = addPrefix(metricName);
-            return new Signal(metricName, sourceInfo.source);
-        }
-
         Signal signal = Signal.decode(registryName);
         if (expandedMetric != null) {
             signal.name = expandedMetric.buildMetricName(signal.name);

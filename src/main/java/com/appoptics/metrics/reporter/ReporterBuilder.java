@@ -1,10 +1,10 @@
-package com.librato.metrics.reporter;
+package com.appoptics.metrics.reporter;
 
 import com.codahale.metrics.MetricFilter;
 import com.codahale.metrics.MetricRegistry;
-import com.librato.metrics.client.Duration;
-import com.librato.metrics.client.IPoster;
-import com.librato.metrics.client.Tag;
+import com.appoptics.metrics.client.Duration;
+import com.appoptics.metrics.client.IPoster;
+import com.appoptics.metrics.client.Tag;
 
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
@@ -12,18 +12,17 @@ import java.util.regex.Pattern;
 public class ReporterBuilder {
     private final ReporterAttributes atts = new ReporterAttributes();
 
-    public ReporterBuilder(MetricRegistry registry, String email, String token) {
+    public ReporterBuilder(MetricRegistry registry, String token) {
         this.atts.registry = registry;
-        this.atts.email = email;
         this.atts.token = token;
     }
 
-    public LibratoReporter build() {
-        return new LibratoReporter(atts);
+    public AppopticsReporter build() {
+        return new AppopticsReporter(atts);
     }
 
-    public LibratoReporter start(long period, TimeUnit unit) {
-        LibratoReporter reporter = build();
+    public AppopticsReporter start(long period, TimeUnit unit) {
+        AppopticsReporter reporter = build();
         reporter.start(period, unit);
         return reporter;
     }
@@ -35,11 +34,6 @@ public class ReporterBuilder {
 
     public ReporterBuilder setName(String name) {
         this.atts.reporterName = name;
-        return this;
-    }
-
-    public ReporterBuilder setSourceRegex(String regex) {
-        this.atts.sourceRegex = Pattern.compile(regex);
         return this;
     }
 
@@ -97,23 +91,8 @@ public class ReporterBuilder {
         return this;
     }
 
-    public ReporterBuilder setSource(String source) {
-        this.atts.source = source;
-        return this;
-    }
-
     public ReporterBuilder addTag(String name, String value) {
         this.atts.tags.add(new Tag(name, value));
-        return this;
-    }
-
-    public ReporterBuilder setEnableLegacy(boolean value) {
-        this.atts.enableLegacy = value;
-        return this;
-    }
-
-    public ReporterBuilder setEnableTagging(boolean value) {
-        this.atts.enableTagging = value;
         return this;
     }
 

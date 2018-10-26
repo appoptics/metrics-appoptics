@@ -1,4 +1,4 @@
-package com.librato.metrics.reporter;
+package com.appoptics.metrics.reporter;
 
 import java.util.Collections;
 import java.util.LinkedHashMap;

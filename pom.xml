@@ -6,15 +6,15 @@
         <artifactId>oss-parent</artifactId>
         <version>7</version>
     </parent>
-    <groupId>com.librato.metrics</groupId>
-    <artifactId>metrics-librato</artifactId>
-    <name>Metrics Librato Support</name>
-    <version>5.1.5-SNAPSHOT</version>
-    <description>The LibratoReporter class runs in the background, publishing
-        metrics to the Librato Metrics API at the
+    <groupId>com.appoptics.metrics</groupId>
+    <artifactId>metrics-appoptics</artifactId>
+    <name>Metrics AppOptics Support</name>
+    <version>1.0.0-SNAPSHOT</version>
+    <description>The AppopticsReporter class runs in the background, publishing
+        metrics to the AppOptics Metrics API at the
         specified interval.
     </description>
-    <url>https://github.com/librato/metrics-librato</url>
+    <url>https://github.com/appoptics/metrics-appoptics</url>
     <licenses>
         <license>
             <name>Apache License 2.0</name>
@@ -23,14 +23,15 @@
         </license>
     </licenses>
     <scm>
-        <url>https://github.com/librato/metrics-librato</url>
-        <connection>scm:git:git@github.com:librato/metrics-librato.git
+        <url>https://github.com/appoptics/metrics-appoptics</url>
+        <connection>scm:git:git@github.com:appoptics/metrics-appoptics.git
         </connection>
         <developerConnection>
-            scm:git:git@github.com:librato/metrics-librato.git
+            scm:git:git@github.com:appoptics/metrics-appoptics.git
         </developerConnection>
         <tag>HEAD</tag>
     </scm>
+
     <properties>
         <dropwizard.metrics.version>3.2.5</dropwizard.metrics.version>
     </properties>
@@ -95,9 +96,9 @@
     </build>
     <dependencies>
         <dependency>
-            <groupId>com.librato.metrics</groupId>
-            <artifactId>librato-java</artifactId>
-            <version>2.1.3</version>
+            <groupId>com.appoptics.metrics</groupId>
+            <artifactId>appoptics-api-java</artifactId>
+            <version>1.0.1</version>
             <type>jar</type>
         </dependency>
         <dependency>

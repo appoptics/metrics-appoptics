@@ -1,4 +1,4 @@
-package com.librato.metrics.reporter;
+package com.appoptics.metrics.reporter;
 
 public class Numbers {
     public static Number getNumberFrom(Object object) {

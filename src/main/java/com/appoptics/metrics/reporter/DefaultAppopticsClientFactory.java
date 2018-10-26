@@ -1,11 +1,11 @@
-package com.librato.metrics.reporter;
+package com.appoptics.metrics.reporter;
 
-import com.librato.metrics.client.LibratoClient;
-import com.librato.metrics.client.LibratoClientBuilder;
+import com.appoptics.metrics.client.AppopticsClient;
+import com.appoptics.metrics.client.AppopticsClientBuilder;
 
-public class DefaultLibratoClientFactory implements ILibratoClientFactory {
-    public LibratoClient build(ReporterAttributes atts) {
-        LibratoClientBuilder builder = LibratoClient.builder(atts.email, atts.token)
+public class DefaultAppopticsClientFactory implements IAppopticsClientFactory {
+    public AppopticsClient build(ReporterAttributes atts) {
+        AppopticsClientBuilder builder = AppopticsClient.builder(atts.token)
                 .setURI(atts.url)
                 .setAgentIdentifier(Agent.AGENT_IDENTIFIER);
         if (atts.readTimeout != null) {
