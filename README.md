@@ -4,6 +4,8 @@ The `AppopticsReporter` class runs in the background, publishing metrics from
 [dropwizard/metrics](http://metrics.dropwizard.io/) to the
  [AppOptics API](https://www.appoptics.com) at the specified interval.
 
+Find the latest [version here](https://search.maven.org/search?q=g:com.appoptics.metrics%20AND%20a:metrics-appoptics&core=gav).
+
 	<dependency>
 	  <groupId>com.appoptics.metrics</groupId>
 	  <artifactId>metrics-appoptics</artifactId>
