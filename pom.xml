@@ -4,7 +4,7 @@
     <groupId>com.appoptics.metrics</groupId>
     <artifactId>metrics-appoptics</artifactId>
     <name>Metrics AppOptics Support</name>
-    <version>1.0.1</version>
+    <version>1.0.2-SNAPSHOT</version>
     <description>The AppopticsReporter class runs in the background, publishing
         metrics to the AppOptics API at the
         specified interval.
