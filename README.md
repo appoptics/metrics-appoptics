@@ -9,7 +9,7 @@ Find the latest [version here](https://search.maven.org/search?q=g:com.appoptics
 	<dependency>
 	  <groupId>com.appoptics.metrics</groupId>
 	  <artifactId>metrics-appoptics</artifactId>
-	  <version>1.0.0</version>
+	  <version>1.0.2</version>
 	</dependency>
 
 ## Usage
@@ -169,4 +169,4 @@ This is enabled by default, but should you wish to disable this feature, you can
 
 ## Using Dropwizard?
 
-The [dropwizard-appoptics](https://github.com/appoptics/dropwizard-appoptics) project allows you to send Metrics from within your Dropwizard application to AppOptics by adding a section to your config file.
+The [dropwizard-metrics-appoptics](https://github.com/appoptics/dropwizard-metrics-appoptics) project allows you to send Metrics from within your Dropwizard application to AppOptics by adding a section to your config file.
