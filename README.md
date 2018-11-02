@@ -125,6 +125,8 @@ Given a Coda Timer with name `foo`, the following values are reported:
 * Gauge: name=foo.5MinuteRate
 * Gauge: name=foo.15MinuteRate
 
+The default unit for timers is *milliseconds*, see below how to change that.
+
 _Note that Coda Timer percentiles are determined using configurable 
 [Reservoir Sampling](https://dropwizard.github.io/metrics/3.1.0/manual/core/#histograms). 
 Coda Timers by default use an exponentially decaying reservoir to prioritize newer data._
@@ -166,6 +168,14 @@ This is enabled by default, but should you wish to disable this feature, you can
 
     Appoptics.reporter(registry, <token>)
     	.setDeleteIdleStats(false)
+
+## Custom Timer Units
+￼
+The default time unit that timers are converted to is *milliseconds*. If you 
+would like to change that you can call `setDurationUnit`:
+
+    Appoptics.reporter(registry, <token>)
+        .setDurationUnit(TimeUnit.MICROSECONDS)
 
 ## Using Dropwizard?
 
