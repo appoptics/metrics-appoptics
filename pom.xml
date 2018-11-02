@@ -4,7 +4,7 @@
     <groupId>com.appoptics.metrics</groupId>
     <artifactId>metrics-appoptics</artifactId>
     <name>Metrics AppOptics Support</name>
-    <version>1.0.3</version>
+    <version>1.0.4-SNAPSHOT</version>
     <description>The AppopticsReporter class runs in the background, publishing
         metrics to the AppOptics API at the
         specified interval.
@@ -24,7 +24,7 @@
         <developerConnection>
             scm:git:git@github.com:appoptics/metrics-appoptics.git
         </developerConnection>
-        <tag>metrics-appoptics-1.0.3</tag>
+        <tag>HEAD</tag>
     </scm>
     <properties>
         <dropwizard.metrics.version>3.2.5</dropwizard.metrics.version>
